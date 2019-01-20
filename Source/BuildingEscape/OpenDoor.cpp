@@ -20,10 +20,15 @@ void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
 
+	
+}
+
+void UOpenDoor::OpenDoor()
+{
 	// Find the owning Actor
 	AActor* Owner = GetOwner();
 	//Create a Rotator
-	FRotator newRotation = FRotator(0.0f, 80.0f,0.0f);
+	FRotator newRotation = FRotator(0.0f, 80.0f, 0.0f);
 	//Set Door Rotation
 	Owner->SetActorRotation(newRotation);
 }
@@ -34,6 +39,11 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	// Poll Trigger Volume
+	if (PressurePlate->IsOverlappingActor(ActorThatOpens)) {
+		OpenDoor();
+
+	}
+	//If the ActorThatOpens is in the volume
 }
 
