@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "DrawDebugHelpers.h"
 
 #define OUT
 
@@ -36,17 +37,26 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
-	// Get player Viewpoint
-
+	/// Get player Viewpoint
 	APlayerController* player = GetWorld()->GetFirstPlayerController();
-	FVector location;
-	FRotator rotation;
-	player->GetPlayerViewPoint(OUT location, OUT rotation);
-	//Ray cast to reach distance
-	UE_LOG(LogTemp, Warning, TEXT("location: %s, rotation: %s"), *location.ToString(), *rotation.ToString())
+	FVector playerLocation;
+	FRotator playerRotation;
+	player->GetPlayerViewPoint(OUT playerLocation, OUT playerRotation);
 
-	//See what we hit
+	//UE_LOG(LogTemp, Warning, TEXT("location: %s, rotation: %s"), *playerLocation.ToString(), *playerRotation.ToString());
 
-
+	///DebugLine
+	FVector LineTraceEnd = playerLocation + playerRotation.Vector()*m_Reach;
+	DrawDebugLine(GetWorld(), playerLocation, LineTraceEnd, FColor(255, 255, 0), false, 0.f, 0, 10.0f);
+	///Ray cast to reach distance
+	FHitResult lineHit;
+	GetWorld()->LineTraceSingleByObjectType(OUT lineHit, playerLocation, LineTraceEnd,
+		FCollisionObjectQueryParams(ECC_PhysicsBody),
+		FCollisionQueryParams(FName(TEXT("")), false, GetOwner()));
+	AActor* actorHit = lineHit.GetActor();
+	if (actorHit) { 
+		UE_LOG(LogTemp, Warning, TEXT("actor hit %s"), *actorHit->GetName());
+	}
+	//See what we hit  
 }
 
