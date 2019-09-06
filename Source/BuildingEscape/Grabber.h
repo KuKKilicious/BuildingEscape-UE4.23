@@ -45,7 +45,7 @@ private:
 	FHitResult GetFirstPhysicsBodyInReach() const;
 
 private:
-	float m_Reach =100.f; //Grabbing reach
+	float m_Reach =150.f; //Grabbing reach
 
 	UPhysicsHandleComponent* m_PhysicsHandle = nullptr;
 	UInputComponent* m_InputHandle = nullptr;
