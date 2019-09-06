@@ -4,6 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "Components/InputComponent.h"
+
+
 #include "Grabber.generated.h"
 
 
@@ -26,5 +30,21 @@ public:
 
 		
 private:
+
+	//Linetrace in Reach
+	void Grab();
+	void Release();
+
+	void SetupComponents();
+	void setupInput();
+	void setupPhysics();
+
+
+	FHitResult GetFirstPhysicsBodyInReach() const;
+
+private:
 	float m_Reach =100.f; //Grabbing reach
+
+	UPhysicsHandleComponent* m_PhysicsHandle = nullptr;
+	UInputComponent* m_InputHandle = nullptr;
 };
