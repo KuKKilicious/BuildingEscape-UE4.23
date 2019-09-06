@@ -4,6 +4,7 @@
 #include "BuildingEscape.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Components/PrimitiveComponent.h"
 
 // Sets default values for this component's properties
 UOpenDoor::UOpenDoor()
@@ -22,7 +23,6 @@ void UOpenDoor::BeginPlay()
 	Super::BeginPlay();
 	LastDoorOpenedTime = GetWorld()->GetTimeSeconds();
 	Owner = GetOwner();
-	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 	startYaw = GetOwner()->GetActorRotation().Yaw;
 
 }
@@ -37,6 +37,20 @@ void UOpenDoor::CloseDoor()
 	Owner->SetActorRotation(FRotator(0.0f, startYaw, 0.0f));
 }
 
+float UOpenDoor::GetTotalMassOfActorsOnPlate()
+{
+	float totalMass = 0.f;
+	TArray<AActor*> overlaps;
+	PressurePlate->GetOverlappingActors(OUT overlaps);
+
+	for (const auto& overlappingActor : overlaps)
+	{
+		totalMass += overlappingActor->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+		UE_LOG(LogTemp, Warning, TEXT("on plate %s"), *overlappingActor->GetName());
+	}
+	return totalMass;
+}
+
 
 // Called every frame
 void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -44,15 +58,16 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	//If the ActorThatOpens is in the volume
-	if (PressurePlate->IsOverlappingActor(ActorThatOpens)) {
+	if (GetTotalMassOfActorsOnPlate() > m_MassThreshold) {
+
 		OpenDoor();
-		LastDoorOpenedTime = GetWorld()->GetTimeSeconds();
+		//LastDoorOpenedTime = GetWorld()->GetTimeSeconds();
 	}
 
 	//Check if its time to close the door
-	if (GetWorld()->GetTimeSeconds() - LastDoorOpenedTime > DoorCloseDelay) {
+	/*if (GetWorld()->GetTimeSeconds() - LastDoorOpenedTime > DoorCloseDelay) {
 		CloseDoor();
-	}
+	}*/
 
 }
 

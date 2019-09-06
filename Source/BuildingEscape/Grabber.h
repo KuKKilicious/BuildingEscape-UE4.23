@@ -40,6 +40,8 @@ private:
 	void setupPhysics();
 
 
+	FVector getPlayerLocation() const;
+	FVector GetReachEndPos() const;
 	FHitResult GetFirstPhysicsBodyInReach() const;
 
 private:

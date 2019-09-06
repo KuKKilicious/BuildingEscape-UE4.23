@@ -14,7 +14,6 @@ UGrabber::UGrabber()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
 	// ...
 }
 
@@ -26,7 +25,6 @@ void UGrabber::setupInput()
 	m_InputHandle = GetOwner()->FindComponentByClass<UInputComponent>();
 	if (m_InputHandle)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("INPUTHANDLE WAS FOUND IN %s"), *GetOwner()->GetName());
 		m_InputHandle->BindAction("Grab", IE_Pressed, this, &UGrabber::Grab);
 		m_InputHandle->BindAction("Grab", IE_Released, this, &UGrabber::Release);
 	}
@@ -37,8 +35,25 @@ void UGrabber::setupInput()
 void UGrabber::setupPhysics()
 {
 	m_PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
-	if (m_PhysicsHandle) {}
-	else { UE_LOG(LogTemp, Error, TEXT("PHYSICS HANDLE WAS NOT FOUND IN %s"), *GetOwner()->GetName()); }
+	if (m_PhysicsHandle == nullptr){ UE_LOG(LogTemp, Error, TEXT("PHYSICS HANDLE WAS NOT FOUND IN %s"), *GetOwner()->GetName()); }
+}
+
+FVector UGrabber::getPlayerLocation() const
+{
+	APlayerController* player = GetWorld()->GetFirstPlayerController();
+	FVector playerLocation;
+	FRotator playerRotation;
+	player->GetPlayerViewPoint(OUT playerLocation, OUT playerRotation);
+	return playerLocation;
+}
+
+FVector UGrabber::GetReachEndPos() const
+{
+	APlayerController* player = GetWorld()->GetFirstPlayerController();
+	FVector playerLocation;
+	FRotator playerRotation;
+	player->GetPlayerViewPoint(OUT playerLocation, OUT playerRotation);
+	return playerLocation + playerRotation.Vector()*m_Reach;
 }
 
 void UGrabber::SetupComponents()
@@ -53,27 +68,21 @@ void UGrabber::SetupComponents()
 void UGrabber::BeginPlay()
 {
 	Super::BeginPlay();
-
 	// ...
 	SetupComponents();
-
 }
 
 
 FHitResult UGrabber::GetFirstPhysicsBodyInReach() const
 {
 	/// Get player Viewpoint
-	APlayerController* player = GetWorld()->GetFirstPlayerController();
-	FVector playerLocation;
-	FRotator playerRotation;
-	player->GetPlayerViewPoint(OUT playerLocation, OUT playerRotation);
-
+	
+	FVector playerLocation = getPlayerLocation();
 	///DebugLine
-	FVector LineTraceEnd = playerLocation + playerRotation.Vector()*m_Reach;
-
+	FVector reachEndPos = GetReachEndPos();
 	///Ray cast to reach distance
 	FHitResult lineHit;
-	GetWorld()->LineTraceSingleByObjectType(OUT lineHit, playerLocation, LineTraceEnd,
+	GetWorld()->LineTraceSingleByObjectType(OUT lineHit, playerLocation, reachEndPos,
 		FCollisionObjectQueryParams(ECC_PhysicsBody),
 		FCollisionQueryParams(FName(TEXT("")), false, GetOwner()));
 	return lineHit;
@@ -83,26 +92,12 @@ FHitResult UGrabber::GetFirstPhysicsBodyInReach() const
 void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	/// Get player Viewpoint
-	APlayerController* player = GetWorld()->GetFirstPlayerController();
-	FVector playerLocation;
-	FRotator playerRotation;
-	player->GetPlayerViewPoint(OUT playerLocation, OUT playerRotation);
-
-	///DebugLine
-	FVector LineTraceEnd = playerLocation + playerRotation.Vector()*m_Reach;
-
-	// ...
+	FVector reachEndPos = GetReachEndPos();
 	///if physics handle, 
-	if(m_PhysicsHandle->GrabbedComponent)
+	if (m_PhysicsHandle->GrabbedComponent)
 	{
-		m_PhysicsHandle->SetTargetLocation(LineTraceEnd);
+		m_PhysicsHandle->SetTargetLocation(reachEndPos);
 	}
-	///move object
-
-	GetFirstPhysicsBodyInReach();
-	//See what we hit  
 }
 
 void UGrabber::Grab()
@@ -115,7 +110,7 @@ void UGrabber::Grab()
 	auto hitActor = lineHit.GetActor();
 	if (hitActor)
 	{
-	/// attach physics handle
+		/// attach physics handle
 		auto hitComponent = lineHit.GetComponent();
 		m_PhysicsHandle->GrabComponent(hitComponent, NAME_None, hitComponent->GetOwner()->GetActorLocation(), true);
 	}
@@ -127,7 +122,7 @@ void UGrabber::Release()
 
 	///release physics handle
 
-	if(m_PhysicsHandle->GrabbedComponent)
+	if (m_PhysicsHandle->GrabbedComponent)
 	{
 		m_PhysicsHandle->ReleaseComponent();
 	}

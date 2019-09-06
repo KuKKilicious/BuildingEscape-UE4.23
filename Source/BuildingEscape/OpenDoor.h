@@ -24,7 +24,8 @@ protected:
 
 	void OpenDoor();
 	void CloseDoor();
-public:	
+public:
+	float GetTotalMassOfActorsOnPlate();
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -41,7 +42,8 @@ private:
 	float LastDoorOpenedTime;
 
 	AActor* Owner; //the owning door
-	AActor* ActorThatOpens;
+	//AActor* ActorThatOpens;
 
 	float startYaw;
+	float m_MassThreshold = 50.f;
 };
