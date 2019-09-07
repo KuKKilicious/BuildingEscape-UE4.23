@@ -21,7 +21,6 @@ UOpenDoor::UOpenDoor()
 void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
-	LastDoorOpenedTime = GetWorld()->GetTimeSeconds();
 	Owner = GetOwner();
 	startYaw = GetOwner()->GetActorRotation().Yaw;
 	if(!PressurePlate){UE_LOG(LogTemp, Warning, TEXT("missing pressure plate"));}
@@ -29,12 +28,13 @@ void UOpenDoor::BeginPlay()
 
 void UOpenDoor::OpenDoor()
 {
-	Owner->SetActorRotation(FRotator(0.0f, startYaw + OpenAngle, 0.0f));
+	OnOpenRequest.Broadcast();
+	
 }
 
 void UOpenDoor::CloseDoor()
 {
-	Owner->SetActorRotation(FRotator(0.0f, startYaw, 0.0f));
+	OnCloseRequest.Broadcast();
 }
 
 float UOpenDoor::GetTotalMassOfActorsOnPlate()
