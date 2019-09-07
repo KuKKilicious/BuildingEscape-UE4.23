@@ -35,7 +35,7 @@ private:
 	float OpenAngle = 80.0f;
 
 	UPROPERTY(EditAnywhere)
-	ATriggerVolume* PressurePlate;
+	ATriggerVolume* PressurePlate = nullptr;
 	UPROPERTY(EditAnywhere)
 	float DoorCloseDelay =1.f;
 
@@ -45,5 +45,5 @@ private:
 	//AActor* ActorThatOpens;
 
 	float startYaw;
-	float m_MassThreshold = 50.f;
+	float m_MassThreshold = 25.f;
 };

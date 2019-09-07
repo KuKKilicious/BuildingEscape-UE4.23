@@ -24,7 +24,7 @@ void UOpenDoor::BeginPlay()
 	LastDoorOpenedTime = GetWorld()->GetTimeSeconds();
 	Owner = GetOwner();
 	startYaw = GetOwner()->GetActorRotation().Yaw;
-
+	if(!PressurePlate){UE_LOG(LogTemp, Warning, TEXT("missing pressure plate"));}
 }
 
 void UOpenDoor::OpenDoor()
@@ -41,7 +41,10 @@ float UOpenDoor::GetTotalMassOfActorsOnPlate()
 {
 	float totalMass = 0.f;
 	TArray<AActor*> overlaps;
+	if(!PressurePlate){return 0.f;}
+	
 	PressurePlate->GetOverlappingActors(OUT overlaps);
+	
 
 	for (const auto& overlappingActor : overlaps)
 	{
@@ -58,10 +61,13 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	//If the ActorThatOpens is in the volume
-	if (GetTotalMassOfActorsOnPlate() > m_MassThreshold) {
+	if (GetTotalMassOfActorsOnPlate() >= m_MassThreshold) {
 
 		OpenDoor();
 		//LastDoorOpenedTime = GetWorld()->GetTimeSeconds();
+	}else
+	{
+		CloseDoor();
 	}
 
 	//Check if its time to close the door
